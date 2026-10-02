@@ -1,44 +1,20 @@
+import 'dotenv/config';
 import { GoogleGenAI } from '@google/genai';
 import { findOrders, cancelOrder } from '../controllers/order.controller.js';
+import { 
+  supportAgentTools, 
+  GetOrderInputSchema, 
+  CancelOrderInputSchema 
+} from '../schemas/tool.schemas.js';
 
-// Initialize Gemini client (requires GOOGLE_API_KEY env var)
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
-
-const getOrderFunction = {
-  type: "function",
-  name: "get_order",
-  description: "Get order details including status, items, shipping, payment info by Order ID (e.g. ORD1001) or User ID",
-  parameters: {
-    type: "object",
-    properties: {
-      id: {
-        type: "string",
-        description: "Order ID (e.g. ORD1001) or MongoDB User ID",
-      },
-    },
-    required: ["id"],
-  },
-};
-
-const cancelOrderFunction = {
-  type: "function",
-  name: "cancel_order",
-  description: "Cancel an order if it has not shipped yet (status is PLACED, CONFIRMED, or PROCESSING). Returns cancellation and refund status.",
-  parameters: {
-    type: "object",
-    properties: {
-      id: {
-        type: "string",
-        description: "The Order ID (e.g. ORD1003) or User ID to cancel",
-      },
-      reason: {
-        type: "string",
-        description: "Optional reason for cancellation",
-      },
-    },
-    required: ["id"],
-  },
-};
+// Lazy initialize Gemini client to ensure environment variables are loaded
+function getAiClient() {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error('GOOGLE_API_KEY is not defined in environment');
+  }
+  return new GoogleGenAI({ apiKey });
+}
 
 export async function get_order(id) {
   try {
@@ -60,8 +36,6 @@ export async function cancel_order(id, reason = '') {
   }
 }
 
-const tools = [getOrderFunction, cancelOrderFunction];
-
 function getInteractionText(interaction) {
   if (interaction?.output_text) {
     return interaction.output_text;
@@ -78,7 +52,7 @@ function getInteractionText(interaction) {
 }
 
 /**
- * Communicates with Gemini API using the Interactions API with multi-step tool support
+ * Communicates with Gemini API using the Interactions API with multi-step tool support and strict schema validation
  * @param {Array|String} messages - Chat history or user prompt string
  * @param {Object} debugInfo - Debug panel tracker for tools
  * @returns {Object} The Gemini response with text and interaction details
@@ -101,6 +75,7 @@ Guidelines:
     promptText = messages[messages.length - 1]?.parts?.[0]?.text || "";
   }
 
+  const ai = getAiClient();
   const model = 'gemini-3.5-flash';
   const MAX_TURNS = 5;
 
@@ -109,7 +84,7 @@ Guidelines:
       model,
       input: promptText,
       system_instruction,
-      tools: tools,
+      tools: supportAgentTools,
     });
 
     let turn = 0;
@@ -135,13 +110,30 @@ Guidelines:
         }
 
         let toolResult = null;
+
+        // 🛡️ Strict Validation and Execution Layer using Zod
         if (callStep.name === "get_order") {
-          const orderId = callStep.arguments?.id || callStep.arguments?.orderId;
-          toolResult = await get_order(orderId);
+          const validation = GetOrderInputSchema.safeParse(callStep.arguments);
+          if (!validation.success) {
+            toolResult = {
+              error: "VALIDATION_FAILED",
+              issues: validation.error.issues.map(i => `${i.path.join('.')}: ${i.message}`),
+            };
+          } else {
+            toolResult = await get_order(validation.data.id);
+          }
+
         } else if (callStep.name === "cancel_order") {
-          const orderId = callStep.arguments?.id || callStep.arguments?.orderId;
-          const reason = callStep.arguments?.reason || '';
-          toolResult = await cancel_order(orderId, reason);
+          const validation = CancelOrderInputSchema.safeParse(callStep.arguments);
+          if (!validation.success) {
+            toolResult = {
+              error: "VALIDATION_FAILED",
+              issues: validation.error.issues.map(i => `${i.path.join('.')}: ${i.message}`),
+            };
+          } else {
+            toolResult = await cancel_order(validation.data.id, validation.data.reason);
+          }
+
         } else {
           toolResult = { error: `Unknown tool: ${callStep.name}` };
         }
@@ -177,5 +169,5 @@ export default {
   generateResponse,
   get_order,
   cancel_order,
-  tools
+  tools: supportAgentTools
 };
