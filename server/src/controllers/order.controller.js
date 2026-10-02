@@ -1,15 +1,23 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 
 const getOrders = async (req, res) => {
+  const id = req.params.user_id || req.params.userId;
+
   try {
-    const orders = await Order.find();
-    console.log('Orders:', orders);
+    const query = id
+      ? (mongoose.Types.ObjectId.isValid(id)
+          ? { userId: id }
+          : { orderId: id.toUpperCase() })
+      : {};
+    console.log('Order query:', query);
+    const orders = await Order.find(query);
+    console.log('Orders found:', orders);
     res.status(200).json(orders);
   } catch (error) {
-    console.log('Error fetching orders:', error);
-    res.status(500).json({ error: 'Error fetching orders' });
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: error.message || 'Error fetching orders' });
   }
-}
-
+};
 
 module.exports = { getOrders };
