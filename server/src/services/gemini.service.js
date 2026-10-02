@@ -32,6 +32,21 @@ export async function get_order(id) {
 
 const tools = [getOrderFunction];
 
+function getInteractionText(interaction) {
+  if (interaction?.output_text) {
+    return interaction.output_text;
+  }
+  if (Array.isArray(interaction?.steps)) {
+    for (const step of interaction.steps) {
+      if (step.type === 'model_output' && Array.isArray(step.content)) {
+        const textPart = step.content.find(c => c.text)?.text;
+        if (textPart) return textPart;
+      }
+    }
+  }
+  return "";
+}
+
 /**
  * Communicates with Gemini API using the Interactions API
  * @param {Array|String} messages - Chat history or user prompt string
@@ -39,7 +54,7 @@ const tools = [getOrderFunction];
  * @returns {Object} The Gemini response with text and interaction details
  */
 export async function generateResponse(messages, debugInfo = null) {
-  const system_instruction = "You are a helpful customer support assistant for an ecommerce store called Orderly Chaos. You help customers with their orders.";
+  const system_instruction = "You are a helpful customer support assistant for an ecommerce store called Orderly Chaos. You help customers with their orders. When an order is found, clearly explain its status, items, tracking details, and estimated delivery date to the user.";
 
   let promptText = "";
   if (typeof messages === 'string') {
@@ -48,9 +63,11 @@ export async function generateResponse(messages, debugInfo = null) {
     promptText = messages[messages.length - 1]?.parts?.[0]?.text || "";
   }
 
+  const model = 'gemini-3.8-flash';
+
   try {
     const interaction = await ai.interactions.create({
-      model: 'gemini-3.5-flash',
+      model,
       input: promptText,
       system_instruction,
       tools: tools,
@@ -74,7 +91,7 @@ export async function generateResponse(messages, debugInfo = null) {
       }
 
       const finalInteraction = await ai.interactions.create({
-        model: "gemini-3.5-flash",
+        model,
         previous_interaction_id: interaction.id,
         input: [{
           type: "function_result",
@@ -84,14 +101,16 @@ export async function generateResponse(messages, debugInfo = null) {
         }],
       });
 
+      const text = getInteractionText(finalInteraction);
       return {
-        text: finalInteraction.output_text,
+        text,
         interaction: finalInteraction
       };
     }
 
+    const text = getInteractionText(interaction);
     return {
-      text: interaction.output_text,
+      text,
       interaction
     };
 
