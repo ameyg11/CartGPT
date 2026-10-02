@@ -19,22 +19,31 @@ const InputBox = ({ onSend, disabled }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-end border-t border-slate-100 p-4 bg-white/50 backdrop-blur-sm rounded-b-2xl">
+    <form onSubmit={handleSubmit} className="flex gap-2.5 items-end border-t border-[#e5e5ea]/40 px-5 py-4"
+      style={{
+        background: 'rgba(255,255,255,0.4)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+      }}
+    >
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Type your question..."
-        className="flex-1 resize-none overflow-hidden rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm h-[46px] min-h-[46px] max-h-32 shadow-inner"
+        placeholder="Ask about your order..."
+        className="flex-1 resize-none overflow-hidden rounded-xl bg-[#f5f5f7]/80 border border-[#e5e5ea]/60 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#007aff]/15 focus:border-[#007aff]/40 transition-all text-[13px] text-[#1d1d1f] placeholder:text-[#86868b] h-[44px] min-h-[44px] max-h-28"
         rows="1"
         disabled={disabled}
       />
       <button
         type="submit"
         disabled={!input.trim() || disabled}
-        className="h-[46px] px-6 rounded-xl bg-blue-600 text-white font-medium text-sm transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow active:scale-95"
+        className="glass-btn-primary h-[44px] w-[44px] rounded-xl flex items-center justify-center flex-shrink-0"
       >
-        Send
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13" />
+          <polygon points="22 2 15 22 11 13 2 9 22 2" />
+        </svg>
       </button>
     </form>
   );

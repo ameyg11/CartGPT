@@ -1,27 +1,127 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3b82f6; /* blue-500 */
-  --color-primary-hover: #2563eb; /* blue-600 */
-  --color-bg-subtle: #f8fafc; /* slate-50 */
-  --color-border-subtle: #e2e8f0; /* slate-200 */
+  --color-primary: #007aff;
+  --color-primary-hover: #0063d1;
+  --color-bg-subtle: #f5f5f7;
+  --color-border-subtle: #e5e5ea;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background-color: var(--color-bg-subtle);
-  color: #0f172a; /* slate-900 */
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #1d1d1f;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
 }
 
-/* Custom scrollbar for chat */
+/* Apple-style thin scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1; /* slate-300 */
+  background-color: rgba(0, 0, 0, 0.15);
   border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Smooth transitions globally */
+*, *::before, *::after {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* Glassmorphism button */
+.glass-btn {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+}
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+.glass-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+.glass-btn:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Primary glassmorphism button */
+.glass-btn-primary {
+  background: rgba(0, 122, 255, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+  color: #fff;
+  transition: all 0.2s ease;
+}
+.glass-btn-primary:hover {
+  background: rgba(0, 122, 255, 0.95);
+  box-shadow: 0 4px 24px rgba(0, 122, 255, 0.25);
+  transform: translateY(-1px);
+}
+.glass-btn-primary:active {
+  transform: translateY(0) scale(0.97);
+}
+.glass-btn-primary:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* Fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Subtle pulse for the live dot */
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-subtle-pulse {
+  animation: subtlePulse 2s ease-in-out infinite;
 }
