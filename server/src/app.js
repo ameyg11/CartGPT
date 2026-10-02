@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-const chatRoutes = require('./routes/chat.routes');
+import express from 'express';
+import cors from 'cors';
+import chatRoutes from './routes/chat.routes.js';
 
 const app = express();
 
@@ -16,4 +16,4 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Orderly Chaos API is running' });
 });
 
-module.exports = app;
+export default app;

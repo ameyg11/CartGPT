@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import chatController from '../controllers/chat.controller.js';
+import { getOrders } from '../controllers/order.controller.js';
+
 const router = express.Router();
-const chatController = require('../controllers/chat.controller');
-const { getOrders } = require('../controllers/order.controller');
 
 router.post('/', chatController.handleChat);
 
@@ -12,4 +13,4 @@ router.post('/', chatController.handleChat);
 router.get('/orders', getOrders);
 router.get('/orders/:user_id', getOrders);
 
-module.exports = router;
+export default router;

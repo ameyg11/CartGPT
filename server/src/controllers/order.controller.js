@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const Order = require('../models/Order');
+import mongoose from 'mongoose';
+import Order from '../models/Order.js';
 
-const getOrders = async (req, res) => {
+export const getOrders = async (req, res) => {
   const id = req.params.user_id || req.params.userId;
 
   try {
@@ -20,4 +20,4 @@ const getOrders = async (req, res) => {
   }
 };
 
-module.exports = { getOrders };
+export default { getOrders };

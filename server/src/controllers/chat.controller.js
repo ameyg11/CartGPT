@@ -1,6 +1,6 @@
-const chatService = require('../services/chat.service');
+import chatService from '../services/chat.service.js';
 
-const handleChat = async (req, res) => {
+export const handleChat = async (req, res) => {
   try {
     const { message } = req.body;
 
@@ -27,6 +27,6 @@ const handleChat = async (req, res) => {
   }
 };
 
-module.exports = {
+export default {
   handleChat
 };

@@ -14,9 +14,9 @@ This directory is an extension point for your custom AI tools.
    
    Example:
    ```javascript
-   const Order = require('../models/Order');
+   import Order from '../models/Order.js';
    
-   async function getOrder(orderId) {
+   export async function getOrder(orderId) {
      return await Order.findOne({ orderId }).populate('userId');
    }
    ```

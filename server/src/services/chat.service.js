@@ -1,11 +1,11 @@
-const geminiService = require('./gemini.service');
+import geminiService, { generateResponse } from './gemini.service.js';
 
 /**
  * Handles the chat interaction flow
  * @param {String} userMessage 
  * @returns {Object} The final response and debug info
  */
-async function processChat(userMessage) {
+export async function processChat(userMessage) {
   const debugInfo = {
     toolCalls: []
   };
@@ -58,6 +58,6 @@ async function processChat(userMessage) {
   }
 }
 
-module.exports = {
+export default {
   processChat
 };

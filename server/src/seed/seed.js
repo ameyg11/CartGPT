@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const User = require('../models/User');
-const Product = require('../models/Product');
-const Order = require('../models/Order');
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import User from '../models/User.js';
+import Product from '../models/Product.js';
+import Order from '../models/Order.js';
 
 dotenv.config({ path: '../../.env' }); // Adjust if needed depending on where script is run
 // Assuming the script is run from project root or server root
