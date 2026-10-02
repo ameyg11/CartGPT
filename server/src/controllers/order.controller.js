@@ -1,18 +1,23 @@
 import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 
+export const findOrders = async (id) => {
+  const query = id
+    ? (mongoose.Types.ObjectId.isValid(id)
+        ? { userId: id }
+        : { orderId: id.toUpperCase() })
+    : {};
+  console.log('Order query:', query);
+  const orders = await Order.find(query);
+  console.log('Orders found:', orders.length);
+  return orders;
+};
+
 export const getOrders = async (req, res) => {
-  const id = req.params.user_id || req.params.userId;
+  const id = req?.params?.user_id || req?.params?.userId;
 
   try {
-    const query = id
-      ? (mongoose.Types.ObjectId.isValid(id)
-          ? { userId: id }
-          : { orderId: id.toUpperCase() })
-      : {};
-    console.log('Order query:', query);
-    const orders = await Order.find(query);
-    console.log('Orders found:', orders);
+    const orders = await findOrders(id);
     res.status(200).json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -20,4 +25,4 @@ export const getOrders = async (req, res) => {
   }
 };
 
-export default { getOrders };
+export default { getOrders, findOrders };

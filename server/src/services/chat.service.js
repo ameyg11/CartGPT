@@ -1,4 +1,4 @@
-import geminiService, { generateResponse } from './gemini.service.js';
+import geminiService from './gemini.service.js';
 
 /**
  * Handles the chat interaction flow
@@ -11,40 +11,12 @@ export async function processChat(userMessage) {
   };
 
   try {
-    // 1. Prepare messages array (in a real app, you'd fetch history from DB)
-    const messages = [
-      { role: 'user', parts: [{ text: userMessage }] }
-    ];
-
-    // 2. Send to Gemini
-    let response = await geminiService.generateResponse(messages);
+    // Process message using Gemini Interactions API with tool calling
+    const response = await geminiService.generateResponse(userMessage, debugInfo);
     
-    // 3. Check for function calls (Extension Point for Tools)
-    // TODO: Detect if response.functionCalls exists
-    // TODO: Loop through function calls
-    // TODO: Execute your custom functions
-    // TODO: Append results to messages and call Gemini again
-
-    /* Example structure for tool execution later:
-    if (response.functionCalls) {
-      for (const call of response.functionCalls) {
-        console.log(`[GEMINI] Function call detected: ${call.name}`);
-        
-        debugInfo.toolCalls.push({
-          name: call.name,
-          arguments: call.args,
-          // result: await myTool(call.args)
-        });
-        
-        // ... execute tool ...
-        // ... return result to Gemini ...
-      }
-    }
-    */
-
-    // 4. Get final text
-    // Assuming a simple text response for now since tools are not implemented
-    let finalAnswer = response.text || "I'm sorry, I cannot answer that right now.";
+    const finalAnswer = typeof response === 'string'
+      ? response
+      : (response?.text || response?.output_text || "I'm sorry, I cannot answer that right now.");
 
     return {
       success: true,
