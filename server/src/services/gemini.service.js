@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { findOrders } from '../controllers/order.controller.js';
+import { findOrders, cancelOrder } from '../controllers/order.controller.js';
 
 // Initialize Gemini client (requires GOOGLE_API_KEY env var)
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
@@ -20,6 +20,26 @@ const getOrderFunction = {
   },
 };
 
+const cancelOrderFunction = {
+  type: "function",
+  name: "cancel_order",
+  description: "Cancel an order if it has not shipped yet (status is PLACED, CONFIRMED, or PROCESSING). Returns cancellation and refund status.",
+  parameters: {
+    type: "object",
+    properties: {
+      id: {
+        type: "string",
+        description: "The Order ID (e.g. ORD1003) or User ID to cancel",
+      },
+      reason: {
+        type: "string",
+        description: "Optional reason for cancellation",
+      },
+    },
+    required: ["id"],
+  },
+};
+
 export async function get_order(id) {
   try {
     const orders = await findOrders(id);
@@ -30,7 +50,17 @@ export async function get_order(id) {
   }
 }
 
-const tools = [getOrderFunction];
+export async function cancel_order(id, reason = '') {
+  try {
+    const result = await cancelOrder(id, reason);
+    return result;
+  } catch (error) {
+    console.error('cancel_order tool error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+const tools = [getOrderFunction, cancelOrderFunction];
 
 function getInteractionText(interaction) {
   if (interaction?.output_text) {
@@ -54,7 +84,7 @@ function getInteractionText(interaction) {
  * @returns {Object} The Gemini response with text and interaction details
  */
 export async function generateResponse(messages, debugInfo = null) {
-  const system_instruction = "You are a helpful customer support assistant for an ecommerce store called Orderly Chaos. You help customers with their orders. When an order is found, clearly explain its status, items, tracking details, and estimated delivery date to the user.";
+  const system_instruction = "You are a helpful customer support assistant for an ecommerce store called Orderly Chaos. You help customers with their orders. When a customer asks about their order status, use the get_order tool. When a customer asks to cancel an order, use the cancel_order tool and clearly inform them of the outcome and refund details.";
 
   let promptText = "";
   if (typeof messages === 'string') {
@@ -63,7 +93,7 @@ export async function generateResponse(messages, debugInfo = null) {
     promptText = messages[messages.length - 1]?.parts?.[0]?.text || "";
   }
 
-  const model = 'gemini-3.8-flash';
+  const model = 'gemini-3.6-flash';
 
   try {
     const interaction = await ai.interactions.create({
@@ -85,9 +115,16 @@ export async function generateResponse(messages, debugInfo = null) {
         });
       }
 
-      let toolResult = [];
+      let toolResult = null;
       if (callStep.name === "get_order") {
-        toolResult = await get_order(callStep.arguments?.id);
+        const orderId = callStep.arguments?.id || callStep.arguments?.orderId;
+        toolResult = await get_order(orderId);
+      } else if (callStep.name === "cancel_order") {
+        const orderId = callStep.arguments?.id || callStep.arguments?.orderId;
+        const reason = callStep.arguments?.reason || '';
+        toolResult = await cancel_order(orderId, reason);
+      } else {
+        toolResult = { error: `Unknown tool: ${callStep.name}` };
       }
 
       const finalInteraction = await ai.interactions.create({
@@ -123,5 +160,6 @@ export async function generateResponse(messages, debugInfo = null) {
 export default {
   generateResponse,
   get_order,
+  cancel_order,
   tools
 };
